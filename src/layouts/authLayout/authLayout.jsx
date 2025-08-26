@@ -34,7 +34,7 @@ const AuthLayout = () => {
         {screens.md && (
           <div
             style={{
-              flex: 8,
+              flex: 7,
               height: "100%",
               display: "flex",
               justifyContent: "center",
@@ -47,7 +47,7 @@ const AuthLayout = () => {
         {/* RightSide (Form Section) */}
         <div
           style={{
-            flex: 4,
+            flex: 5,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",

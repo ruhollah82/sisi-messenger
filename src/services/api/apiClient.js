@@ -1,9 +1,10 @@
 // src/services/api/apiClient.js
 import axios from "axios";
+import API, { getBaseURL } from "./apiList";
 
 // Create axios instance with default config
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:3001",
+  baseURL: getBaseURL(), // You'll need to add this method to apiList.js
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

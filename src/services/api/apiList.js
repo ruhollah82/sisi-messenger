@@ -5,8 +5,8 @@
  * Defines all API endpoints with dynamic base URL construction
  * Supports both custom IP and localhost development environments
  */
-const customIP = process.env.REACT_APP_API_IP || "";
-const port = process.env.REACT_APP_API_PORT || "3001";
+const customIP = "";
+const port = "3001";
 const baseURL = "/api";
 
 // Constructs base URL for API endpoints
@@ -130,3 +130,14 @@ API.replacePathParams = (url, params = {}) => {
 };
 
 export default API;
+
+// Add to src/services/api/apiList.js
+export const getBaseURL = () => {
+  const customIP = "";
+  const port = "3001";
+  const baseURL = "/api";
+
+  return customIP
+    ? `http://${customIP}:${port}${baseURL}`
+    : `http://localhost:${port}${baseURL}`;
+};

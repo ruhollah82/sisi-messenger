@@ -1,8 +1,8 @@
 // src/redux/thunks/authThunks.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import apiClient from "../../services/api/apiClient";
-import API from "../../services/api/apiList";
-import { setLoading, setAuthData, setError } from "../slices/authSlice";
+import apiClient from "../../../services/api/apiClient";
+import API from "../../../services/api/apiList";
+import { setLoading, setAuthData, setError } from "../Slices/authSlice";
 
 // Async thunk for login
 export const loginUser = createAsyncThunk(
