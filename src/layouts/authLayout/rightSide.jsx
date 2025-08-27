@@ -1,10 +1,7 @@
 import { Button, Card, Divider, Flex, Space, theme, Typography } from "antd";
-import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 const { Title } = Typography;
-import { baseTokens } from "../../theme/tokens";
 const { useToken } = theme;
-import logo from "../../assets/images/icon/logo-with-name.svg";
 
 const RightSide = () => {
   const navigate = useNavigate();

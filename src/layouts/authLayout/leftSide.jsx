@@ -27,7 +27,7 @@ const LeftSide = () => {
   }, [location.pathname]);
 
   const r1 = useMovingRadial(
-    baseTokens.token.primary3,
+    baseTokens.token.secondary3,
     { x: 20, y: 10 },
     60,
     0.6,
@@ -63,7 +63,7 @@ const LeftSide = () => {
     "circle"
   );
   const r5 = useMovingRadial(
-    baseTokens.token.primary2,
+    baseTokens.token.secondary2,
     { x: 50, y: 50 },
     70,
     0.7,
