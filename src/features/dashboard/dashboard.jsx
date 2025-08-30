@@ -27,6 +27,7 @@ const DashboardPage = () => {
       <Title>
         {JSON.parse(localStorage.getItem("authData"))?.user?.phone_number}
       </Title>
+      تست دپلوی گیتهاب
     </>
   );
 };

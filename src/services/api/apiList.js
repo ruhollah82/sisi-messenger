@@ -5,13 +5,13 @@
  * Defines all API endpoints with dynamic base URL construction
  * Supports both custom IP and localhost development environments
  */
-const customIP = "";
+const customAddress = "";
 const port = "3001";
 const baseURL = "/api";
 
 // Constructs base URL for API endpoints
-const apiBaseURL = customIP
-  ? `http://${customIP}:${port}${baseURL}`
+const apiBaseURL = customAddress
+  ? `https://${customAddress}${baseURL}`
   : `http://localhost:${port}${baseURL}`;
 
 const API = {
