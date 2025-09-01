@@ -1,17 +1,17 @@
 import React from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom"; // optional for redirection
+import { useNavigate } from "react-router-dom";
 import { logout } from "../../app/store/Slices/authSlice";
 import { Button, Typography } from "antd";
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // if using React Router
+  const navigate = useNavigate();
   const { Title } = Typography;
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login"); // optional: redirect to login page
+    navigate("/login");
   };
 
   return (
@@ -27,7 +27,7 @@ const DashboardPage = () => {
       <Title>
         {JSON.parse(localStorage.getItem("authData"))?.user?.phone_number}
       </Title>
-      تست دپلوی گیتهاب
+      تست دپلوی گیتهاب ld,,,,
     </>
   );
 };
