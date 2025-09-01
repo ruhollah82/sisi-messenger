@@ -1,30 +1,37 @@
-name: Deploy React App
+name: Deploy
 
 on:
   push:
-    branches:
-      - main # Run only on master branch
+    branches: ["main", "master"]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v3
-
+      #
       - name: Install dependencies
         run: npm install
 
       - name: Build React app
         run: npm run build
 
-      - name: Deploy to Server via SSH
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p 2585 ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy React app via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.PORT }}
           source: "dist/*"
-          target: "/var/www/sisia.ir/dist"
-          port: 2585
+          target: "/var/www/sisia.ir/"
+##
