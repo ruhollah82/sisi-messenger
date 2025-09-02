@@ -34,14 +34,3 @@ jobs:
           port: ${{ secrets.PORT }}
           source: "dist/*"
           target: "/var/www/sisia.ir/"
-
-      # Optional: restart server or reload Nginx
-      - name: Restart server
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          port: ${{ secrets.PORT }}
-          script: |
-            sudo systemctl restart nginx
