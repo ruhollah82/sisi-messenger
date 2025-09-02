@@ -11,9 +11,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      #
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci # ci is faster & safer than install
 
       - name: Build React app
         run: npm run build
@@ -23,9 +23,9 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p 2585 ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy React app via SCP
+      - name: Deploy via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -34,4 +34,14 @@ jobs:
           port: ${{ secrets.PORT }}
           source: "dist/*"
           target: "/var/www/sisia.ir/"
-##
+
+      # Optional: restart server or reload Nginx
+      - name: Restart server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            sudo systemctl restart nginx
