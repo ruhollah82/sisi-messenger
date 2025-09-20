@@ -1,7 +1,22 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient from "../../../services/api/apiClient";
 import API from "../../../services/api/apiList";
-import { setLoading, setAuthData, setError, logout } from "../slices/authSlice";
+import { setLoading, setAuthData, setError, logout } from "../Slices/authSlice";
+
+// Helper for logging
+const logApi = (label, { payload, response, error }) => {
+  console.group(`[${label}]`);
+  if (payload) console.log("Payload:", payload);
+  if (response) console.log("Response:", response);
+  if (error) {
+    console.error("Error object:", error);
+    if (error.response) {
+      console.error("Error response data:", error.response.data);
+      console.error("Error status:", error.response.status);
+    }
+  }
+  console.groupEnd();
+};
 
 // Async thunk for login
 export const loginUser = createAsyncThunk(
@@ -10,28 +25,25 @@ export const loginUser = createAsyncThunk(
     try {
       dispatch(setLoading(true));
 
-      // Use URLSearchParams for x-www-form-urlencoded format
       const formData = new URLSearchParams();
       formData.append("email", email);
       formData.append("password", password);
 
       const response = await apiClient.post(API.AUTH.LOGIN, formData, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        withCredentials: true, // Important for cookies
+        withCredentials: true,
       });
 
+      logApi("Login", { payload: { email }, response });
+
       if (response.data.code === 1) {
-        dispatch(
-          setAuthData({
-            user: response.data.user,
-            // Tokens are in cookies, not in response
-          })
-        );
+        dispatch(setAuthData({ user: response.data.user }));
         return response.data;
       } else {
         throw new Error(response.data.msg || "Login failed");
       }
     } catch (error) {
+      logApi("Login Error", { payload: { email }, error });
       const errorMsg = error.response?.data?.msg || error.message;
       dispatch(setError(errorMsg));
       return rejectWithValue(errorMsg);
@@ -56,17 +68,16 @@ export const registerUser = createAsyncThunk(
         withCredentials: true,
       });
 
+      logApi("Register", { payload: userData, response });
+
       if (response.data.code === 1) {
-        dispatch(
-          setAuthData({
-            user: response.data.user,
-          })
-        );
+        dispatch(setAuthData({ user: response.data.user }));
         return response.data;
       } else {
         throw new Error(response.data.msg || "Registration failed");
       }
     } catch (error) {
+      logApi("Register Error", { payload: userData, error });
       const errorMsg = error.response?.data?.msg || error.message;
       dispatch(setError(errorMsg));
       return rejectWithValue(errorMsg);
@@ -79,7 +90,6 @@ export const refreshToken = createAsyncThunk(
   "auth/refreshToken",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      // Since refresh token is in cookies, we don't need to pass it
       const response = await apiClient.post(
         API.AUTH.REFRESH_TOKEN,
         {},
@@ -89,13 +99,15 @@ export const refreshToken = createAsyncThunk(
         }
       );
 
+      logApi("Refresh Token", { response });
+
       if (response.data.code === 1) {
-        // Tokens are automatically updated in cookies
         return response.data;
       } else {
         throw new Error(response.data.msg || "Token refresh failed");
       }
     } catch (error) {
+      logApi("Refresh Token Error", { error });
       dispatch(logout());
       return rejectWithValue(error.response?.data?.msg || error.message);
     }
@@ -107,7 +119,6 @@ export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, { dispatch }) => {
     try {
-      // No need to pass refresh token as it's in cookies
       await apiClient.post(
         API.AUTH.LOGOUT,
         {},
@@ -116,8 +127,10 @@ export const logoutUser = createAsyncThunk(
           withCredentials: true,
         }
       );
+
+      logApi("Logout", { response: "Success" });
     } catch (error) {
-      console.error("Logout API error:", error);
+      logApi("Logout Error", { error });
     } finally {
       dispatch(logout());
     }
