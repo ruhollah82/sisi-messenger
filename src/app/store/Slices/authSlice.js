@@ -1,12 +1,11 @@
-// src/redux/slices/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
+// Since tokens are stored in cookies, we don't need to manage them in Redux
 const initialState = {
   user: null,
-  token: localStorage.getItem("authToken") || null,
-  refreshToken: localStorage.getItem("refreshToken") || null,
   isLoading: false,
   error: null,
+  isAuthenticated: false, // We'll check cookies to determine this
 };
 
 const authSlice = createSlice({
@@ -18,17 +17,8 @@ const authSlice = createSlice({
     },
     setAuthData: (state, action) => {
       state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.refreshToken = action.payload.refreshToken;
+      state.isAuthenticated = true;
       state.error = null;
-
-      // Store tokens in localStorage
-      if (action.payload.token) {
-        localStorage.setItem("authToken", action.payload.token);
-      }
-      if (action.payload.refreshToken) {
-        localStorage.setItem("refreshToken", action.payload.refreshToken);
-      }
     },
     setError: (state, action) => {
       state.error = action.payload;
@@ -36,13 +26,16 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.user = null;
-      state.token = null;
-      state.refreshToken = null;
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("refreshToken");
+      state.isAuthenticated = false;
+      // Cookies are handled by the browser/backend
     },
     clearError: (state) => {
       state.error = null;
+    },
+    checkAuthStatus: (state) => {
+      // This will be updated based on cookie checks
+      // You might want to implement a proper check here
+      state.isAuthenticated = document.cookie.includes("authToken");
     },
   },
 });
@@ -50,11 +43,15 @@ const authSlice = createSlice({
 // Selectors
 export const selectAuthStatus = (state) => state.auth.isLoading;
 export const selectAuthError = (state) => state.auth.error;
-export const selectIsAuthenticated = (state) => !!state.auth.token;
+export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectUser = (state) => state.auth.user;
-export const selectToken = (state) => state.auth.token;
-export const selectRefreshToken = (state) => state.auth.refreshToken;
 
-export const { setLoading, setAuthData, setError, logout, clearError } =
-  authSlice.actions;
+export const {
+  setLoading,
+  setAuthData,
+  setError,
+  logout,
+  clearError,
+  checkAuthStatus,
+} = authSlice.actions;
 export default authSlice.reducer;

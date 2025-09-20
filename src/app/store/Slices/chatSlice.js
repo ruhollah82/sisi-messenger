@@ -1,4 +1,3 @@
-// src/redux/slices/chatSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
@@ -21,6 +20,14 @@ const chatSlice = createSlice({
     addMessage: (state, action) => {
       state.publicMessages.push(action.payload);
     },
+    updateMessage: (state, action) => {
+      const index = state.publicMessages.findIndex(
+        (msg) => msg.id === action.payload.id
+      );
+      if (index !== -1) {
+        state.publicMessages[index] = action.payload;
+      }
+    },
     removeMessage: (state, action) => {
       state.publicMessages = state.publicMessages.filter(
         (msg) => msg.id !== action.payload
@@ -40,6 +47,7 @@ export const {
   setChatLoading,
   setPublicMessages,
   addMessage,
+  updateMessage,
   removeMessage,
   setChatError,
   clearChatError,
