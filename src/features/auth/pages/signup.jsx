@@ -14,7 +14,10 @@ import {
   theme,
 } from "antd";
 import { Icon } from "@iconify/react";
-import { registerUser } from "../../../app/store/Thunks/authThunk";
+import {
+  registerUser,
+  autoLoginAfterRegister,
+} from "../../../app/store/Thunks/authThunk";
 import {
   clearError,
   selectAuthStatus,
@@ -32,6 +35,7 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const { message } = useApp();
+  const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
 
   const status = useSelector(selectAuthStatus);
   const error = useSelector(selectAuthError);
@@ -40,13 +44,18 @@ const SignUpPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      message.success("ثبت‌نام و ورود خودکار موفق!");
+      navigate("/chat");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, message]);
 
   const handleRegister = async (values) => {
     try {
-      const response = await dispatch(
+      // Clear any previous errors
+      dispatch(clearError());
+
+      // Step 1: Register the user
+      const registrationResponse = await dispatch(
         registerUser({
           email: values.email,
           pass1: values.password,
@@ -57,14 +66,37 @@ const SignUpPage = () => {
         })
       ).unwrap();
 
-      console.log("Registration successful:", response);
+      console.log("Registration successful:", registrationResponse);
       message.success("ثبت‌نام موفق!");
-      navigate("/dashboard");
+
+      // Step 2: Auto-login after successful registration
+      setIsAutoLoggingIn(true);
+      try {
+        await dispatch(
+          autoLoginAfterRegister({
+            email: values.email,
+            password: values.password,
+          })
+        ).unwrap();
+
+        console.log("Auto-login successful");
+        // Navigation will be handled by the useEffect when isAuthenticated becomes true
+      } catch (loginError) {
+        console.error("Auto-login failed:", loginError);
+        message.warning(
+          "ثبت‌نام موفق بود، اما ورود خودکار انجام نشد. لطفاً manually وارد شوید."
+        );
+        navigate("/login");
+      }
     } catch (err) {
       console.error("Registration failed:", err);
       message.error("ثبت‌نام ناموفق بود");
+    } finally {
+      setIsAutoLoggingIn(false);
     }
   };
+
+  const isLoading = status === "loading" || isAutoLoggingIn;
 
   return (
     <Flex
@@ -92,7 +124,7 @@ const SignUpPage = () => {
           ایجاد حساب کاربری
         </Title>
 
-        <Spin spinning={status === "loading"}>
+        <Spin spinning={isLoading}>
           {error && (
             <Alert
               message={error}
@@ -105,6 +137,7 @@ const SignUpPage = () => {
           )}
 
           <Form form={form} layout="vertical" onFinish={handleRegister}>
+            {/* Your form fields remain the same */}
             <Flex gap={12}>
               <Form.Item
                 name="firstName"
@@ -232,11 +265,11 @@ const SignUpPage = () => {
                 htmlType="submit"
                 size="large"
                 block
-                loading={status === "loading"}
+                loading={isLoading}
                 icon={<Icon icon="mdi:account-plus" />}
                 style={{ marginBottom: 16 }}
               >
-                ایجاد حساب کاربری
+                {isLoading ? "در حال پردازش..." : "ایجاد حساب کاربری"}
               </Button>
 
               <Flex justify="center">

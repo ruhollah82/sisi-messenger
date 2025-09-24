@@ -1,12 +1,26 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import apiClient from "../../services/api/apiClient";
-import API from "../../services/api/apiList";
+import apiClient from "../../../services/api/apiClient";
+import API from "../../../services/api/apiList";
 import {
   setProfileLoading,
   setProfile,
   updateProfile,
   setProfileError,
-} from "../slices/profileSlice";
+} from "../Slices/profileSlice";
+
+// Enhanced error handler
+const handleApiError = (error, defaultMessage) => {
+  if (error.response) {
+    // Server responded with error status
+    return error.response.data.msg || defaultMessage;
+  } else if (error.request) {
+    // Request made but no response received
+    return "خطا در ارتباط با سرور. لطفا اتصال اینترنت خود را بررسی کنید.";
+  } else {
+    // Something else happened
+    return error.message || defaultMessage;
+  }
+};
 
 // Get user profile
 export const fetchProfile = createAsyncThunk(
@@ -26,7 +40,7 @@ export const fetchProfile = createAsyncThunk(
         throw new Error(response.data.msg || "Failed to fetch profile");
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.msg || error.message;
+      const errorMsg = handleApiError(error, "خطا در دریافت اطلاعات پروفایل");
       dispatch(setProfileError(errorMsg));
       return rejectWithValue(errorMsg);
     }
@@ -39,7 +53,7 @@ export const uploadProfilePicture = createAsyncThunk(
   async (file, { dispatch, rejectWithValue }) => {
     try {
       const formData = new FormData();
-      formData.append("Profile", file); // Note: Changed from "Profil" to "Profile" to match API spec
+      formData.append("Profile", file);
 
       const response = await apiClient.put(
         API.PROFILE.UPLOAD_PICTURE,
@@ -59,7 +73,7 @@ export const uploadProfilePicture = createAsyncThunk(
         );
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.msg || error.message;
+      const errorMsg = handleApiError(error, "خطا در آپلود تصویر پروفایل");
       dispatch(setProfileError(errorMsg));
       return rejectWithValue(errorMsg);
     }
@@ -71,7 +85,6 @@ export const updateUserProfile = createAsyncThunk(
   "profile/updateProfile",
   async (profileData, { dispatch, rejectWithValue }) => {
     try {
-      // Use URLSearchParams for x-www-form-urlencoded format
       const formData = new URLSearchParams();
       Object.keys(profileData).forEach((key) => {
         formData.append(key, profileData[key]);
@@ -89,7 +102,7 @@ export const updateUserProfile = createAsyncThunk(
         throw new Error(response.data.msg || "Failed to update profile");
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.msg || error.message;
+      const errorMsg = handleApiError(error, "خطا در به‌روزرسانی پروفایل");
       dispatch(setProfileError(errorMsg));
       return rejectWithValue(errorMsg);
     }
@@ -111,14 +124,14 @@ export const changeUserEmail = createAsyncThunk(
       });
 
       if (response.data.code === 1) {
-        // You might want to update the profile with the new email
-        // or refetch the profile
+        // Refetch profile to get updated data
+        await dispatch(fetchProfile());
         return response.data;
       } else {
         throw new Error(response.data.msg || "Failed to change email");
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.msg || error.message;
+      const errorMsg = handleApiError(error, "خطا در تغییر ایمیل");
       dispatch(setProfileError(errorMsg));
       return rejectWithValue(errorMsg);
     }
@@ -143,7 +156,7 @@ export const deleteProfilePicture = createAsyncThunk(
         );
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.msg || error.message;
+      const errorMsg = handleApiError(error, "خطا در حذف تصویر پروفایل");
       dispatch(setProfileError(errorMsg));
       return rejectWithValue(errorMsg);
     }

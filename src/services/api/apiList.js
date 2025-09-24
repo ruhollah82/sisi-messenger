@@ -5,8 +5,8 @@
  */
 
 const config = {
-  customAddress: "api.sisia.ir",
-  port: "3001",
+  customAddress: "",
+  port: "3002",
   baseURL: "/api",
 };
 

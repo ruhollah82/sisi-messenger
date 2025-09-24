@@ -42,7 +42,7 @@ const LoginPage = () => {
   // Redirect if authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/chat");
     }
   }, [isAuthenticated, navigate]);
 
@@ -58,7 +58,7 @@ const LoginPage = () => {
 
       console.log("Login successful:", response);
       message.success("ورود موفق!");
-      navigate("/dashboard");
+      navigate("/chat");
     } catch (err) {
       console.error("Login failed:", err);
       message.error("ورود ناموفق بود");

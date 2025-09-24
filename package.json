@@ -12,6 +12,7 @@
   "dependencies": {
     "@ant-design/cssinjs": "^1.23.0",
     "@ant-design/icons": "^6.0.0",
+    "@chatscope/chat-ui-kit-styles": "^1.4.0",
     "@iconify/react": "^6.0.0",
     "@lottiefiles/dotlottie-react": "^0.15.1",
     "@reduxjs/toolkit": "^2.8.2",

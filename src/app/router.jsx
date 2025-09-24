@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import LoginPage from "../features/auth/pages/login";
 import AuthLayout from "../layouts/authLayout/authLayout";
 import MainLayout from "../layouts/mainLayout";
-import DashboardPage from "../features/dashboard/dashboard";
+import DashboardPage from "../features/chat/chat";
 import LandingPage from "./pages/landingPage";
 import SignUpPage from "../features/auth/pages/signup";
 
@@ -22,7 +22,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <LandingPage /> },
       {
-        path: "/dashboard",
+        path: "/chat",
         element: <DashboardPage />,
       },
       {

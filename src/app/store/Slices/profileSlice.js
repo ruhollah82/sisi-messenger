@@ -1,3 +1,4 @@
+// src/app/store/Slices/profileSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
@@ -31,6 +32,11 @@ const profileSlice = createSlice({
     },
   },
 });
+
+// Add these selectors
+export const selectProfile = (state) => state.profile.profile;
+export const selectProfileLoading = (state) => state.profile.isLoading;
+export const selectProfileError = (state) => state.profile.error;
 
 export const {
   setProfileLoading,

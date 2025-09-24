@@ -5,7 +5,7 @@ const initialState = {
   user: null,
   isLoading: false,
   error: null,
-  isAuthenticated: false, // We'll check cookies to determine this
+  isAuthenticated: true, // We'll check cookies to determine this
 };
 
 const authSlice = createSlice({
@@ -35,7 +35,7 @@ const authSlice = createSlice({
     checkAuthStatus: (state) => {
       // This will be updated based on cookie checks
       // You might want to implement a proper check here
-      state.isAuthenticated = document.cookie.includes("authToken");
+      state.isAuthenticated = document.cookie.includes("accessToken");
     },
   },
 });

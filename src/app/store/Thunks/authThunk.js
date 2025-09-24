@@ -34,16 +34,21 @@ export const loginUser = createAsyncThunk(
         withCredentials: true,
       });
 
-      logApi("Login", { payload: { email }, response });
-
       if (response.data.code === 1) {
-        dispatch(setAuthData({ user: response.data.user }));
+        dispatch(
+          setAuthData({
+            user: response.data.user,
+          })
+        );
+
+        // Use SPA navigation instead of window.location
+        navigateTo("/chat");
+
         return response.data;
       } else {
         throw new Error(response.data.msg || "Login failed");
       }
     } catch (error) {
-      logApi("Login Error", { payload: { email }, error });
       const errorMsg = error.response?.data?.msg || error.message;
       dispatch(setError(errorMsg));
       return rejectWithValue(errorMsg);
@@ -51,7 +56,42 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Async thunk for registration
+// Async thunk for auto-login after registration
+export const autoLoginAfterRegister = createAsyncThunk(
+  "auth/autoLogin",
+  async ({ email, password }, { dispatch, rejectWithValue }) => {
+    try {
+      const loginFormData = new URLSearchParams();
+      loginFormData.append("email", email);
+      loginFormData.append("password", password);
+
+      const loginResponse = await apiClient.post(
+        API.AUTH.LOGIN,
+        loginFormData,
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          withCredentials: true,
+        }
+      );
+
+      if (loginResponse.data.code === 1) {
+        dispatch(
+          setAuthData({
+            user: loginResponse.data.user,
+          })
+        );
+        return loginResponse.data;
+      } else {
+        throw new Error(loginResponse.data.msg || "Auto-login failed");
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.msg || error.message;
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+// Async thunk for registration (without auto-login)
 export const registerUser = createAsyncThunk(
   "auth/register",
   async (userData, { dispatch, rejectWithValue }) => {
@@ -68,16 +108,13 @@ export const registerUser = createAsyncThunk(
         withCredentials: true,
       });
 
-      logApi("Register", { payload: userData, response });
-
       if (response.data.code === 1) {
-        dispatch(setAuthData({ user: response.data.user }));
+        // Registration successful, but we won't auto-login here
         return response.data;
       } else {
         throw new Error(response.data.msg || "Registration failed");
       }
     } catch (error) {
-      logApi("Register Error", { payload: userData, error });
       const errorMsg = error.response?.data?.msg || error.message;
       dispatch(setError(errorMsg));
       return rejectWithValue(errorMsg);
@@ -127,12 +164,12 @@ export const logoutUser = createAsyncThunk(
           withCredentials: true,
         }
       );
-
-      logApi("Logout", { response: "Success" });
     } catch (error) {
-      logApi("Logout Error", { error });
+      console.error("Logout API error:", error);
     } finally {
       dispatch(logout());
+      // Use SPA navigation instead of window.location
+      navigateTo("/login");
     }
   }
 );
