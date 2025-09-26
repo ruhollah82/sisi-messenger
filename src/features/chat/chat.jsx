@@ -1,17 +1,5 @@
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {
-  logout,
-  selectIsAuthenticated,
-} from "../../app/store/Slices/authSlice";
-import { fetchProfile } from "../../app/store/Thunks/profileThunks";
-
-import {
-  selectProfile,
-  selectProfileLoading,
-  selectProfileError,
-} from "../../app/store/Slices/profileSlice";
 import {
   Button,
   Typography,
@@ -31,28 +19,32 @@ import {
   CameraOutlined,
 } from "@ant-design/icons";
 
+import useAuth from "../../hooks/useAuth"; // 🔹 for auth
+import useProfile from "../../hooks/useProfile"; // 🔹 for profile
+
 const Chat = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { Title, Text } = Typography;
 
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  const profile = useSelector(selectProfile);
-  const isLoading = useSelector(selectProfileLoading);
-  const error = useSelector(selectProfileError);
+  // 🔹 hooks
+  const { isAuthenticated, logout } = useAuth();
+  const { profile, isLoading, error, getProfile } = useProfile();
 
+  // Fetch profile when authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/login");
+      // navigate("/login");
+      console.log("not authenticated");
     } else {
-      dispatch(fetchProfile());
-      // Fetch profile data when component mounts and user is authenticated
+      getProfile();
     }
-  }, [isAuthenticated, navigate, dispatch]);
+  }, [isAuthenticated, navigate, getProfile]);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/login");
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      navigate("/login");
+    }
   };
 
   const handleEditProfile = () => {

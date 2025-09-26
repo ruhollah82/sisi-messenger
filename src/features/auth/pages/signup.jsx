@@ -1,6 +1,5 @@
 // src/pages/SignUpPage.jsx
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Form,
@@ -14,34 +13,25 @@ import {
   theme,
 } from "antd";
 import { Icon } from "@iconify/react";
-import {
-  registerUser,
-  autoLoginAfterRegister,
-} from "../../../app/store/Thunks/authThunk";
-import {
-  clearError,
-  selectAuthStatus,
-  selectAuthError,
-  selectIsAuthenticated,
-} from "../../../app/store/Slices/authSlice";
 import useApp from "antd/es/app/useApp";
 import { baseTokens } from "../../../theme/tokens";
+import useAuth from "../../../hooks/useAuth"; // <-- useAuth hook
 
 const { Title } = Typography;
 const { useToken } = theme;
 
 const SignUpPage = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const { message } = useApp();
   const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
-
-  const status = useSelector(selectAuthStatus);
-  const error = useSelector(selectAuthError);
-  const isAuthenticated = useSelector(selectIsAuthenticated);
   const { token } = useToken();
 
+  // 🔹 useAuth hook state & actions
+  const { register, autoLogin, clearError, isAuthenticated, isLoading, error } =
+    useAuth();
+
+  // Redirect if authenticated
   useEffect(() => {
     if (isAuthenticated) {
       message.success("ثبت‌نام و ورود خودکار موفق!");
@@ -51,52 +41,46 @@ const SignUpPage = () => {
 
   const handleRegister = async (values) => {
     try {
-      // Clear any previous errors
-      dispatch(clearError());
+      clearError();
 
       // Step 1: Register the user
-      const registrationResponse = await dispatch(
-        registerUser({
-          email: values.email,
-          pass1: values.password,
-          pass2: values.confirmPassword,
-          username: values.username,
-          Fname: values.firstName,
-          Lname: values.lastName,
-        })
-      ).unwrap();
+      const registrationResult = await register({
+        email: values.email,
+        pass1: values.password,
+        pass2: values.confirmPassword,
+        username: values.username,
+        Fname: values.firstName,
+        Lname: values.lastName,
+      });
 
-      console.log("Registration successful:", registrationResponse);
-      message.success("ثبت‌نام موفق!");
+      if (registrationResult.success) {
+        console.log("Registration successful:", registrationResult.data);
+        message.success("ثبت‌نام موفق!");
 
-      // Step 2: Auto-login after successful registration
-      setIsAutoLoggingIn(true);
-      try {
-        await dispatch(
-          autoLoginAfterRegister({
-            email: values.email,
-            password: values.password,
-          })
-        ).unwrap();
+        // Step 2: Auto-login after successful registration
+        setIsAutoLoggingIn(true);
+        const autoLoginResult = await autoLogin(values.email, values.password);
 
-        console.log("Auto-login successful");
-        // Navigation will be handled by the useEffect when isAuthenticated becomes true
-      } catch (loginError) {
-        console.error("Auto-login failed:", loginError);
-        message.warning(
-          "ثبت‌نام موفق بود، اما ورود خودکار انجام نشد. لطفاً manually وارد شوید."
-        );
-        navigate("/login");
+        if (autoLoginResult.success) {
+          console.log("Auto-login successful");
+          // Navigation will be handled by the useEffect
+        } else {
+          console.error("Auto-login failed:", autoLoginResult.error);
+          message.warning(
+            "ثبت‌نام موفق بود، اما ورود خودکار انجام نشد. لطفاً به صورت دستی وارد شوید."
+          );
+          navigate("/login");
+        }
+      } else {
+        console.error("Registration failed:", registrationResult.error);
+        message.error(registrationResult.error || "ثبت‌نام ناموفق بود");
       }
-    } catch (err) {
-      console.error("Registration failed:", err);
-      message.error("ثبت‌نام ناموفق بود");
     } finally {
       setIsAutoLoggingIn(false);
     }
   };
 
-  const isLoading = status === "loading" || isAutoLoggingIn;
+  const isProcessing = isLoading || isAutoLoggingIn;
 
   return (
     <Flex
@@ -124,29 +108,25 @@ const SignUpPage = () => {
           ایجاد حساب کاربری
         </Title>
 
-        <Spin spinning={isLoading}>
+        <Spin spinning={isProcessing}>
           {error && (
             <Alert
               message={error}
               type="error"
               showIcon
               closable
-              onClose={() => dispatch(clearError())}
+              onClose={clearError}
               style={{ marginBottom: 16 }}
             />
           )}
 
           <Form form={form} layout="vertical" onFinish={handleRegister}>
-            {/* Your form fields remain the same */}
             <Flex gap={12}>
               <Form.Item
                 name="firstName"
                 label="نام"
                 rules={[
-                  {
-                    required: true,
-                    message: "لطفا نام خود را وارد کنید!",
-                  },
+                  { required: true, message: "لطفا نام خود را وارد کنید!" },
                 ]}
                 style={{ flex: 1 }}
               >
@@ -176,10 +156,7 @@ const SignUpPage = () => {
                   required: true,
                   message: "لطفا نام کاربری خود را وارد کنید!",
                 },
-                {
-                  min: 3,
-                  message: "نام کاربری باید حداقل 3 کاراکتر باشد!",
-                },
+                { min: 3, message: "نام کاربری باید حداقل 3 کاراکتر باشد!" },
               ]}
             >
               <Input
@@ -193,14 +170,8 @@ const SignUpPage = () => {
               name="email"
               label="ایمیل"
               rules={[
-                {
-                  required: true,
-                  message: "لطفا ایمیل خود را وارد کنید!",
-                },
-                {
-                  type: "email",
-                  message: "لطفا یک ایمیل معتبر وارد کنید!",
-                },
+                { required: true, message: "لطفا ایمیل خود را وارد کنید!" },
+                { type: "email", message: "لطفا یک ایمیل معتبر وارد کنید!" },
               ]}
             >
               <Input
@@ -214,14 +185,8 @@ const SignUpPage = () => {
               name="password"
               label="رمز عبور"
               rules={[
-                {
-                  required: true,
-                  message: "لطفا رمز عبور خود را وارد کنید!",
-                },
-                {
-                  min: 6,
-                  message: "رمز عبور باید حداقل ۶ کاراکتر باشد!",
-                },
+                { required: true, message: "لطفا رمز عبور خود را وارد کنید!" },
+                { min: 6, message: "رمز عبور باید حداقل ۶ کاراکتر باشد!" },
               ]}
               hasFeedback
             >
@@ -265,11 +230,11 @@ const SignUpPage = () => {
                 htmlType="submit"
                 size="large"
                 block
-                loading={isLoading}
+                loading={isProcessing}
                 icon={<Icon icon="mdi:account-plus" />}
                 style={{ marginBottom: 16 }}
               >
-                {isLoading ? "در حال پردازش..." : "ایجاد حساب کاربری"}
+                {isProcessing ? "در حال پردازش..." : "ایجاد حساب کاربری"}
               </Button>
 
               <Flex justify="center">

@@ -1,6 +1,5 @@
 // src/pages/LoginPage.jsx
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Form,
@@ -14,30 +13,21 @@ import {
   theme,
 } from "antd";
 import { Icon } from "@iconify/react";
-import { loginUser } from "../../../app/store/Thunks/authThunk";
-import {
-  clearError,
-  selectAuthStatus,
-  selectAuthError,
-  selectIsAuthenticated,
-} from "../../../app/store/Slices/authSlice";
 import useApp from "antd/es/app/useApp";
 import { baseTokens } from "../../../theme/tokens";
+import useAuth from "../../../hooks/useAuth"; // <-- useAuth hook
 
-const { Title, Text, Link } = Typography;
+const { Title } = Typography;
 const { useToken } = theme;
 
 const LoginPage = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [form] = Form.useForm();
   const { message } = useApp();
-
-  // Redux state selectors
-  const status = useSelector(selectAuthStatus);
-  const error = useSelector(selectAuthError);
-  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const navigate = useNavigate();
   const { token } = useToken();
+
+  // 🔹 useAuth hook state & actions
+  const { login, clearError, isAuthenticated, isLoading, error } = useAuth();
 
   // Redirect if authenticated
   useEffect(() => {
@@ -48,20 +38,15 @@ const LoginPage = () => {
 
   // Handle login submission
   const handleLogin = async (values) => {
-    try {
-      const response = await dispatch(
-        loginUser({
-          email: values.email,
-          password: values.password,
-        })
-      ).unwrap();
+    const { email, password } = values;
+    const result = await login(email, password);
 
-      console.log("Login successful:", response);
+    if (result.success) {
       message.success("ورود موفق!");
       navigate("/chat");
-    } catch (err) {
-      console.error("Login failed:", err);
-      message.error("ورود ناموفق بود");
+    } else {
+      console.error("Login failed:", result.error);
+      message.error(result.error || "ورود ناموفق بود");
     }
   };
 
@@ -86,14 +71,14 @@ const LoginPage = () => {
           ورود به سیستم
         </Title>
 
-        <Spin spinning={status === "loading"}>
+        <Spin spinning={isLoading}>
           {error && (
             <Alert
               message={error}
               type="error"
               showIcon
               closable
-              onClose={() => dispatch(clearError())}
+              onClose={clearError}
               style={{ marginBottom: 16 }}
             />
           )}
@@ -147,7 +132,7 @@ const LoginPage = () => {
                 htmlType="submit"
                 size="large"
                 block
-                loading={status === "loading"}
+                loading={isLoading}
                 icon={<Icon icon="mdi:login" />}
                 style={{ marginBottom: 16 }}
               >

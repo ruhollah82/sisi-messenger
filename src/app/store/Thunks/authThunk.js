@@ -1,3 +1,4 @@
+//authThunk.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient from "../../../services/api/apiClient";
 import API from "../../../services/api/apiList";
@@ -52,6 +53,8 @@ export const loginUser = createAsyncThunk(
       const errorMsg = error.response?.data?.msg || error.message;
       dispatch(setError(errorMsg));
       return rejectWithValue(errorMsg);
+    } finally {
+      dispatch(setLoading(false));
     }
   }
 );
@@ -61,6 +64,7 @@ export const autoLoginAfterRegister = createAsyncThunk(
   "auth/autoLogin",
   async ({ email, password }, { dispatch, rejectWithValue }) => {
     try {
+      dispatch(setLoading(true));
       const loginFormData = new URLSearchParams();
       loginFormData.append("email", email);
       loginFormData.append("password", password);
@@ -87,6 +91,8 @@ export const autoLoginAfterRegister = createAsyncThunk(
     } catch (error) {
       const errorMsg = error.response?.data?.msg || error.message;
       return rejectWithValue(errorMsg);
+    } finally {
+      dispatch(setLoading(false));
     }
   }
 );
@@ -118,6 +124,8 @@ export const registerUser = createAsyncThunk(
       const errorMsg = error.response?.data?.msg || error.message;
       dispatch(setError(errorMsg));
       return rejectWithValue(errorMsg);
+    } finally {
+      dispatch(setLoading(false));
     }
   }
 );
@@ -168,7 +176,6 @@ export const logoutUser = createAsyncThunk(
       console.error("Logout API error:", error);
     } finally {
       dispatch(logout());
-      // Use SPA navigation instead of window.location
       navigateTo("/login");
     }
   }

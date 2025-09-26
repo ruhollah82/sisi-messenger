@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { deleteCookie } from "../../../utils/coockies";
 
 // Since tokens are stored in cookies, we don't need to manage them in Redux
 const initialState = {
   user: null,
   isLoading: false,
   error: null,
-  isAuthenticated: true, // We'll check cookies to determine this
+  isAuthenticated: false, // We'll check cookies to determine this
 };
 
 const authSlice = createSlice({
@@ -36,6 +37,9 @@ const authSlice = createSlice({
       // This will be updated based on cookie checks
       // You might want to implement a proper check here
       state.isAuthenticated = document.cookie.includes("accessToken");
+      deleteCookie("refreshToken");
+      deleteCookie("accessToken");
+      location.reload();
     },
   },
 });
